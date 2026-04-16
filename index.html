@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Horarios de Nicolás y Jacobo</title>
+
+<!-- App icon para pantalla de inicio -->
+
+<link rel="apple-touch-icon" href="https://worellanab.github.io/famoreosh/icon_final.png">
+<link rel="icon" href="https://worellanab.github.io/famoreosh/icon_final.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PEAD">
+
+<!-- Open Graph / WhatsApp preview -->
+
+<meta property="og:title" content="📚 Horarios Escolares PEAD" />
+<meta property="og:description" content="Consulta el horario de Nicolás y Jacobo en tiempo real · Turno Tarde 2025" />
+<meta property="og:url" content="https://worellanab.github.io/famoreosh/" />
+<meta property="og:type" content="website" />
+<meta property="og:image" content="https://worellanab.github.io/famoreosh/preview.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="https://worellanab.github.io/famoreosh/preview.png" />
+
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Nunito+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+background: #f0f4ff;
+font-family: ‘Nunito Sans’, sans-serif;
+min-height: 100vh;
+padding: 30px 16px;
+}
+
+.header { text-align: center; margin-bottom: 20px; }
+.header h1 { font-family: ‘Nunito’, sans-serif; font-weight: 900; font-size: 1.8rem; color: #1a237e; }
+.header p { font-size: 0.9rem; color: #5c6bc0; font-weight: 600; margin-top: 4px; }
+
+/* Notif button */
+.notif-btn {
+display: block;
+margin: 0 auto 20px;
+background: #1a237e;
+color: white;
+border: none;
+border-radius: 50px;
+padding: 10px 28px;
+font-family: ‘Nunito’, sans-serif;
+font-weight: 800;
+font-size: 0.9rem;
+cursor: pointer;
+box-shadow: 0 4px 12px rgba(26,35,126,0.3);
+}
+.notif-btn.on { background: #2e7d32; }
+.notif-btn.denied { background: #b71c1c; }
+
+.selector { display: flex; justify-content: center; gap: 16px; margin-bottom: 32px; flex-wrap: wrap; }
+
+.btn-hijo {
+font-family: ‘Nunito’, sans-serif; font-weight: 800; font-size: 1.1rem;
+padding: 14px 40px; border: none; border-radius: 50px; cursor: pointer;
+transition: all 0.25s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.btn-nicolas { background: #e8eaf6; color: #3949ab; }
+.btn-nicolas.active, .btn-nicolas:hover { background: #3949ab; color: white; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(57,73,171,0.35); }
+.btn-jacobo { background: #e8f5e9; color: #2e7d32; }
+.btn-jacobo.active, .btn-jacobo:hover { background: #2e7d32; color: white; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(46,125,50,0.35); }
+
+.horario-panel { display: none; max-width: 960px; margin: 0 auto; animation: fadeIn 0.3s ease; }
+.horario-panel.visible { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+.nombre-panel { text-align: center; margin-bottom: 16px; }
+.nombre-panel h2 { font-family: ‘Nunito’, sans-serif; font-weight: 900; font-size: 1.5rem; }
+.nicolas-color { color: #3949ab; }
+.jacobo-color  { color: #2e7d32; }
+
+table { width: 100%; border-collapse: separate; border-spacing: 4px; }
+thead th { background: #1a237e; color: white; font-family: ‘Nunito’, sans-serif; font-weight: 800; font-size: 0.82rem; padding: 11px 6px; text-align: center; border-radius: 8px; letter-spacing: 0.4px; }
+thead th.hora-col { background: #283593; font-size: 0.78rem; }
+tbody tr td { text-align: center; font-family: ‘Nunito’, sans-serif; font-weight: 700; font-size: 0.7rem; padding: 8px 3px; border-radius: 7px; vertical-align: middle; color: #333; }
+
+.hora { background: #e8eaf6; color: #3949ab; font-size: 0.66rem; font-weight: 800; white-space: nowrap; padding: 6px 6px; border-radius: 7px; }
+.descanso-row td { background: #f5f5f5; color: #9e9e9e; font-size: 0.68rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; padding: 5px; }
+.empty { background: #f9f9f9; color: transparent; }
+
+.ingles       { background: #ce93d8; color: #4a148c; }
+.matematicas  { background: #ffcc80; color: #e65100; }
+.comunicacion { background: #bcaaa4; color: #3e2723; }
+.ccss         { background: #b3e5fc; color: #01579b; }
+.cta          { background: #a5d6a7; color: #1b5e20; }
+.dpcc         { background: #f48fb1; color: #880e4f; }
+.ept          { background: #80cbc4; color: #004d40; }
+.educ-fisica  { background: #ef9a9a; color: #b71c1c; }
+.arte         { background: #e0e0e0; color: #424242; }
+.tutoria      { background: #f5f5f5; color: #616161; border: 1px solid #ddd; }
+.conv-val     { background: #fff9c4; color: #f57f17; }
+.hab-mat      { background: #ffcc80; color: #e65100; }
+.hab-com      { background: #bcaaa4; color: #3e2723; }
+.hab-inv      { background: #b3e5fc; color: #01579b; }
+.hueco        { background: #eeeeee; color: #757575; font-style: italic; }
+
+.clase-ahora { outline: 3px solid #ff1744; outline-offset: 1px; position: relative; }
+.clase-ahora::after {
+content: ‘▶ AHORA’; position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+background: #ff1744; color: white; font-size: 0.5rem; font-weight: 900;
+padding: 1px 5px; border-radius: 4px; white-space: nowrap;
+}
+
+.footer { text-align: center; margin-top: 24px; font-size: 0.78rem; color: #9fa8da; font-weight: 600; }
+</style>
+
+</head>
+<body>
+
+<div class="header">
+  <h1>📚 Horarios Escolares</h1>
+  <p>Turno Tarde · 2025</p>
+</div>
+
+<button class="notif-btn" id="notifBtn" onclick="activarNotificaciones()">🔔 Activar alertas de clases</button>
+
+<div class="selector">
+  <button class="btn-hijo btn-nicolas" onclick="mostrar('nicolas')">🎒 Nicolás</button>
+  <button class="btn-hijo btn-jacobo" onclick="mostrar('jacobo')">🎒 Jacobo</button>
+</div>
+
+<!-- ===== NICOLÁS ===== -->
+
+<div id="panel-nicolas" class="horario-panel">
+  <div class="nombre-panel"><h2 class="nicolas-color">Horario de Nicolás</h2></div>
+  <table id="tabla-nicolas">
+    <thead>
+      <tr>
+        <th class="hora-col" colspan="2">HORARIO</th>
+        <th>LUNES</th><th>MARTES</th><th>MIÉRCOLES</th><th>JUEVES</th><th>VIERNES</th>
+        <th class="hora-col" colspan="2">HORARIO</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr data-start="15:00" data-end="15:45">
+        <td class="hora">3:00</td><td class="hora">3:45</td>
+        <td class="ingles">INGLÉS</td><td class="matematicas">MATEMÁTICAS</td><td class="hueco">HUECO</td><td class="hueco">HUECO</td><td class="hueco">HUECO</td>
+        <td class="hora">3:00</td><td class="hora">3:45</td>
+      </tr>
+      <tr class="descanso-row">
+        <td class="hora">3:45</td><td class="hora">3:50</td><td colspan="5">DESCANSO</td>
+        <td class="hora">3:45</td><td class="hora">3:50</td>
+      </tr>
+      <tr data-start="15:50" data-end="16:35">
+        <td class="hora">3:50</td><td class="hora">4:35</td>
+        <td class="ingles">INGLÉS</td><td class="matematicas">MATEMÁTICAS</td><td class="matematicas">MATEMÁTICAS</td><td class="conv-val">CONV. Y VAL.</td><td class="hueco">HUECO</td>
+        <td class="hora">3:50</td><td class="hora">4:35</td>
+      </tr>
+      <tr class="descanso-row">
+        <td class="hora">4:35</td><td class="hora">4:40</td><td colspan="5">DESCANSO</td>
+        <td class="hora">4:35</td><td class="hora">4:40</td>
+      </tr>
+      <tr data-start="16:40" data-end="17:25">
+        <td class="hora">4:40</td><td class="hora">5:25</td>
+        <td class="hab-mat">HABILIDADES MAT.</td><td class="hab-com">HABILIDADES COM.</td><td class="ccss">CCSS</td><td class="dpcc">DPCC</td><td class="tutoria">TUTORÍA</td>
+        <td class="hora">4:40</td><td class="hora">5:25</td>
+      </tr>
+      <tr class="descanso-row">
+        <td class="hora">5:25</td><td class="hora">5:30</td><td colspan="5">DESCANSO</td>
+        <td class="hora">5:25</td><td class="hora">5:30</td>
+      </tr>
+      <tr data-start="17:30" data-end="18:15">
+        <td class="hora">5:30</td><td class="hora">6:15</td>
+        <td class="comunicacion">COMUNICACIÓN</td><td class="cta">CTA</td><td class="ccss">CCSS</td><td class="hueco">HUECO</td><td class="educ-fisica">EDUC. FÍSICA</td>
+        <td class="hora">5:30</td><td class="hora">6:15</td>
+      </tr>
+      <tr class="descanso-row">
+        <td class="hora">6:15</td><td class="hora">6:20</td><td colspan="5">DESCANSO</td>
+        <td class="hora">6:15</td><td class="hora">6:20</td>
+      </tr>
+      <tr data-start="18:20" data-end="19:05">
+        <td class="hora">6:20</td><td class="hora">7:05</td>
+        <td class="comunicacion">COMUNICACIÓN</td><td class="cta">CTA</td><td class="hab-inv">HABILIDADES INV.</td><td class="ept">EPT</td><td class="arte">ARTE Y CULTURA</td>
+        <td class="hora">6:20</td><td class="hora">7:05</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ===== JACOBO ===== -->
+
+<div id="panel-jacobo" class="horario-panel">
+  <div class="nombre-panel"><h2 class="jacobo-color">Horario de Jacobo</h2></div>
+  <table id="tabla-jacobo">
+    <thead>
+      <tr>
+        <th class="hora-col" colspan="2">HORARIO</th>
+        <th>LUNES</th><th>MARTES</th><th>MIÉRCOLES</th><th>JUEVES</th><th>VIERNES</th>
+        <th class="hora-col" colspan="2">HORARIO</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr data-start="15:00" data-end="15:45">
+        <td class="hora">3:00</td><td class="hora">3:45</td>
+        <td class="matematicas">MATEMÁTICAS</td><td class="ccss">CCSS</td><td class="ingles">INGLÉS</td><td class="dpcc">DPCC</td><td class="tutoria">TUTORÍA</td>
+        <td class="hora">3:00</td><td class="hora">3:45</td>
+      </tr>
+      <tr class="descanso-row">
+        <td class="hora">3:45</td><td class="hora">3:50</td><td colspan="5">DESCANSO</td>
+        <td class="hora">3:45</td><td class="hora">3:50</td>
+      </tr>
+      <tr data-start="15:50" data-end="16:35">
+        <td class="hora">3:50</td><td class="hora">4:35</td>
+        <td class="matematicas">MATEMÁTICAS</td><td class="ccss">CCSS</td><td class="ingles">INGLÉS</td><td class="hueco">HUECO</td><td class="hueco">HUECO</td>
+        <td class="hora">3:50</td><td class="hora">4:35</td>
+      </tr>
+      <tr class="descanso-row">
+        <td class="hora">4:35</td><td class="hora">4:40</td><td colspan="5">DESCANSO</td>
+        <td class="hora">4:35</td><td class="hora">4:40</td>
+      </tr>
+      <tr data-start="16:40" data-end="17:25">
+        <td class="hora">4:40</td><td class="hora">5:25</td>
+        <td class="ept">EPT</td><td class="hab-inv">HABILIDADES INV.</td><td class="hab-mat">HABILIDADES MAT.</td><td class="hab-com">HABILIDADES COM.</td><td class="educ-fisica">EDUC. FÍSICA</td>
+        <td class="hora">4:40</td><td class="hora">5:25</td>
+      </tr>
+      <tr class="descanso-row">
+        <td class="hora">5:25</td><td class="hora">5:30</td><td colspan="5">DESCANSO</td>
+        <td class="hora">5:25</td><td class="hora">5:30</td>
+      </tr>
+      <tr data-start="17:30" data-end="18:15">
+        <td class="hora">5:30</td><td class="hora">6:15</td>
+        <td class="cta">CTA</td><td class="hueco">HUECO</td><td class="comunicacion">COMUNICACIÓN</td><td class="conv-val">CONV. Y VAL.</td><td class="hueco">HUECO</td>
+        <td class="hora">5:30</td><td class="hora">6:15</td>
+      </tr>
+      <tr class="descanso-row">
+        <td class="hora">6:15</td><td class="hora">6:20</td><td colspan="5">DESCANSO</td>
+        <td class="hora">6:15</td><td class="hora">6:20</td>
+      </tr>
+      <tr data-start="18:20" data-end="19:05">
+        <td class="hora">6:20</td><td class="hora">7:05</td>
+        <td class="cta">CTA</td><td class="matematicas">MATEMÁTICAS</td><td class="comunicacion">COMUNICACIÓN</td><td class="arte">ARTE Y CULTURA</td><td class="hueco">HUECO</td>
+        <td class="hora">6:20</td><td class="hora">7:05</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="footer">PEAD · Horarios Escolares 2025</div>
+
+<script>
+const dayToCol = { 1: 2, 2: 3, 3: 4, 4: 5, 5: 6 };
+
+// =====================
+// Horarios por hijo: bloques consolidados (sin repetir si materia continua)
+// formato: { dia: [ {nombre, inicio_min, fin_min, inicio_str, fin_str} ] }
+// =====================
+
+const horarios = {
+  nicolas: {
+    1: [ // Lunes
+      { n: 'INGLÉS',           ini: 15*60,    fin: 16*60+35, is: '3:00', fs: '4:35' },
+      { n: 'HABILIDADES MAT.', ini: 16*60+40, fin: 17*60+25, is: '4:40', fs: '5:25' },
+      { n: 'COMUNICACIÓN',     ini: 17*60+30, fin: 19*60+5,  is: '5:30', fs: '7:05' },
+    ],
+    2: [ // Martes
+      { n: 'MATEMÁTICAS',      ini: 15*60,    fin: 16*60+35, is: '3:00', fs: '4:35' },
+      { n: 'HABILIDADES COM.', ini: 16*60+40, fin: 17*60+25, is: '4:40', fs: '5:25' },
+      { n: 'CTA',              ini: 17*60+30, fin: 19*60+5,  is: '5:30', fs: '7:05' },
+    ],
+    3: [ // Miércoles
+      { n: 'HUECO',            ini: 15*60,    fin: 15*60+45, is: '3:00', fs: '3:45' },
+      { n: 'MATEMÁTICAS',      ini: 15*60+50, fin: 16*60+35, is: '3:50', fs: '4:35' },
+      { n: 'CCSS',             ini: 16*60+40, fin: 18*60+15, is: '4:40', fs: '6:15' },
+      { n: 'HABILIDADES INV.', ini: 18*60+20, fin: 19*60+5,  is: '6:20', fs: '7:05' },
+    ],
+    4: [ // Jueves
+      { n: 'HUECO',            ini: 15*60,    fin: 15*60+45, is: '3:00', fs: '3:45' },
+      { n: 'CONV. Y VAL.',     ini: 15*60+50, fin: 16*60+35, is: '3:50', fs: '4:35' },
+      { n: 'DPCC',             ini: 16*60+40, fin: 17*60+25, is: '4:40', fs: '5:25' },
+      { n: 'HUECO',            ini: 17*60+30, fin: 18*60+15, is: '5:30', fs: '6:15' },
+      { n: 'EPT',              ini: 18*60+20, fin: 19*60+5,  is: '6:20', fs: '7:05' },
+    ],
+    5: [ // Viernes
+      { n: 'HUECO',            ini: 15*60,    fin: 16*60+35, is: '3:00', fs: '4:35' },
+      { n: 'TUTORÍA',          ini: 16*60+40, fin: 17*60+25, is: '4:40', fs: '5:25' },
+      { n: 'EDUC. FÍSICA',     ini: 17*60+30, fin: 18*60+15, is: '5:30', fs: '6:15' },
+      { n: 'ARTE Y CULTURA',   ini: 18*60+20, fin: 19*60+5,  is: '6:20', fs: '7:05' },
+    ],
+  },
+  jacobo: {
+    1: [ // Lunes
+      { n: 'MATEMÁTICAS',      ini: 15*60,    fin: 16*60+35, is: '3:00', fs: '4:35' },
+      { n: 'EPT',              ini: 16*60+40, fin: 17*60+25, is: '4:40', fs: '5:25' },
+      { n: 'CTA',              ini: 17*60+30, fin: 19*60+5,  is: '5:30', fs: '7:05' },
+    ],
+    2: [ // Martes
+      { n: 'CCSS',             ini: 15*60,    fin: 16*60+35, is: '3:00', fs: '4:35' },
+      { n: 'HABILIDADES INV.', ini: 16*60+40, fin: 17*60+25, is: '4:40', fs: '5:25' },
+      { n: 'HUECO',            ini: 17*60+30, fin: 18*60+15, is: '5:30', fs: '6:15' },
+      { n: 'MATEMÁTICAS',      ini: 18*60+20, fin: 19*60+5,  is: '6:20', fs: '7:05' },
+    ],
+    3: [ // Miércoles
+      { n: 'INGLÉS',           ini: 15*60,    fin: 16*60+35, is: '3:00', fs: '4:35' },
+      { n: 'HABILIDADES MAT.', ini: 16*60+40, fin: 17*60+25, is: '4:40', fs: '5:25' },
+      { n: 'COMUNICACIÓN',     ini: 17*60+30, fin: 19*60+5,  is: '5:30', fs: '7:05' },
+    ],
+    4: [ // Jueves
+      { n: 'DPCC',             ini: 15*60,    fin: 15*60+45, is: '3:00', fs: '3:45' },
+      { n: 'HUECO',            ini: 15*60+50, fin: 16*60+35, is: '3:50', fs: '4:35' },
+      { n: 'HABILIDADES COM.', ini: 16*60+40, fin: 17*60+25, is: '4:40', fs: '5:25' },
+      { n: 'CONV. Y VAL.',     ini: 17*60+30, fin: 18*60+15, is: '5:30', fs: '6:15' },
+      { n: 'ARTE Y CULTURA',   ini: 18*60+20, fin: 19*60+5,  is: '6:20', fs: '7:05' },
+    ],
+    5: [ // Viernes
+      { n: 'TUTORÍA',          ini: 15*60,    fin: 15*60+45, is: '3:00', fs: '3:45' },
+      { n: 'HUECO',            ini: 15*60+50, fin: 16*60+35, is: '3:50', fs: '4:35' },
+      { n: 'EDUC. FÍSICA',     ini: 16*60+40, fin: 17*60+25, is: '4:40', fs: '5:25' },
+      { n: 'HUECO',            ini: 17*60+30, fin: 18*60+15, is: '5:30', fs: '6:15' },
+      { n: 'HUECO',            ini: 18*60+20, fin: 19*60+5,  is: '6:20', fs: '7:05' },
+    ],
+  }
+};
+
+// =====================
+// MARCAR AHORA
+// =====================
+function marcarAhora(tablaId) {
+  const tabla = document.getElementById(tablaId);
+  tabla.querySelectorAll('.clase-ahora').forEach(el => el.classList.remove('clase-ahora'));
+  const now = new Date();
+  const day = now.getDay();
+  const col = dayToCol[day];
+  if (!col) return;
+  const hhmm = now.getHours() * 60 + now.getMinutes();
+  tabla.querySelectorAll('tr[data-start]').forEach(row => {
+    const [sh, sm] = row.dataset.start.split(':').map(Number);
+    const [eh, em] = row.dataset.end.split(':').map(Number);
+    if (hhmm >= sh*60+sm && hhmm < eh*60+em) {
+      const cell = row.cells[col];
+      if (cell && !cell.classList.contains('empty')) cell.classList.add('clase-ahora');
+    }
+  });
+}
+
+function mostrar(hijo) {
+  document.querySelectorAll('.horario-panel').forEach(p => p.classList.remove('visible'));
+  document.querySelectorAll('.btn-hijo').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + hijo).classList.add('visible');
+  document.querySelector('.btn-' + hijo).classList.add('active');
+  marcarAhora('tabla-' + hijo);
+}
+
+setInterval(() => {
+  ['nicolas','jacobo'].forEach(h => {
+    if (document.getElementById('panel-' + h).classList.contains('visible')) marcarAhora('tabla-' + h);
+  });
+}, 60000);
+
+// =====================
+// SERVICE WORKER + NOTIFICACIONES
+// =====================
+let notifActivas = false;
+let swRegistration = null;
+
+// Registrar Service Worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/famoreosh/sw.js')
+    .then(reg => { swRegistration = reg; })
+    .catch(err => console.log('SW error:', err));
+}
+
+function activarNotificaciones() {
+  if (!('Notification' in window)) {
+    alert('Tu navegador no soporta notificaciones. Agrega la web a pantalla de inicio primero.');
+    return;
+  }
+  if (Notification.permission === 'granted') {
+    notifActivas = !notifActivas;
+    actualizarBoton();
+    if (notifActivas) enviarAlertasAlSW();
+    else cancelarEnSW();
+  } else if (Notification.permission !== 'denied') {
+    Notification.requestPermission().then(perm => {
+      if (perm === 'granted') {
+        notifActivas = true;
+        actualizarBoton();
+        enviarAlertasAlSW();
+      } else {
+        document.getElementById('notifBtn').className = 'notif-btn denied';
+        document.getElementById('notifBtn').textContent = '🚫 Notificaciones bloqueadas';
+      }
+    });
+  } else {
+    document.getElementById('notifBtn').className = 'notif-btn denied';
+    document.getElementById('notifBtn').textContent = '🚫 Activa permisos en Ajustes del iPhone';
+  }
+}
+
+function actualizarBoton() {
+  const btn = document.getElementById('notifBtn');
+  if (notifActivas) {
+    btn.className = 'notif-btn on';
+    btn.textContent = '🔔 Alertas activas · Toca para desactivar';
+  } else {
+    btn.className = 'notif-btn';
+    btn.textContent = '🔔 Activar alertas de clases';
+  }
+}
+
+function cancelarEnSW() {
+  if (swRegistration && swRegistration.active) {
+    swRegistration.active.postMessage({ tipo: 'cancelar' });
+  }
+}
+
+function enviarAlertasAlSW() {
+  const now = new Date();
+  const day = now.getDay();
+  if (!dayToCol[day]) return;
+
+  const alertas = [];
+  ['nicolas', 'jacobo'].forEach(hijo => {
+    const bloques = horarios[hijo][day] || [];
+    bloques.forEach(b => {
+      const horas = Math.floor(b.ini / 60);
+      const mins = b.ini % 60;
+      const cuando = new Date();
+      cuando.setHours(horas, mins - 3, 0, 0);
+      const diff = cuando - now;
+      if (diff > 0) {
+        alertas.push({
+          hijo: hijo.charAt(0).toUpperCase() + hijo.slice(1),
+          nombre: b.n,
+          inicio: b.is,
+          fin: b.fs,
+          cuando: cuando.getTime()
+        });
+      }
+    });
+  });
+
+  if (swRegistration && swRegistration.active) {
+    swRegistration.active.postMessage({ tipo: 'programar', alertas });
+  } else {
+    // Fallback: esperar a que el SW esté listo
+    navigator.serviceWorker.ready.then(reg => {
+      reg.active.postMessage({ tipo: 'programar', alertas });
+    });
+  }
+}
+
+// Reprogramar cada día a medianoche
+function programarMedianoche() {
+  const now = new Date();
+  const manana = new Date(now.getFullYear(), now.getMonth(), now.getDate()+1, 0, 0, 5);
+  setTimeout(() => {
+    if (notifActivas) enviarAlertasAlSW();
+    programarMedianoche();
+  }, manana - now);
+}
+programarMedianoche();
+</script>
+
+</body>
+</html>
